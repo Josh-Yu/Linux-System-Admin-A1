@@ -1,0 +1,133 @@
+#!/bin/bash
+
+#echo "Inside Group Management Script"
+
+#Author: Joshua Yu
+#student Number: 323 5184
+#Yallara username: s323 5184
+#Group Management 
+#
+#Last Modified: 06/08/2012
+
+
+GROUPADD=/usr/sbin/groupadd
+GROUPDEL=/usr/sbin/groupdel
+USERMOD=/usr/sbin/usermod
+PRINTF=/usr/bin/printf
+
+#DEBUGGING
+#set -u #Variable checks
+#set -x #Trace
+
+##########################################################################
+#Used to append logging operations to assistant.log
+#parameters passed in are: operation and Statuscode from operation.
+#currrent user and date are auto generated in the function, no passing req
+function log ()
+{
+	local currentUser=`/usr/ucb/whoami`
+	local operation=$1
+	local status=$2
+	local timeStamp=$(date +%F\|%T)
+	$PRINTF "$timeStamp | $currentUser | Status Code: $status | $operation| \n" >> assistant.log
+} #end log
+##########################################################################
+
+##########################################################################
+#
+#Displays menu
+function menu ()
+{
+	#$PRINTF '%-20s\n,"Group Management features"'
+	$PRINTF '1. Information\n\n'
+	$PRINTF '2. Add a new Group\n'
+	$PRINTF '3. Delete a Group\n\n'
+	$PRINTF '4. Modify Group Permissions\n'
+	$PRINTF 'Please enter an option: '
+} #end menu
+##########################################################################
+
+##########################################################################
+#Function in charge of retriving user input
+#Function returns the output to wherever is called
+function userInput ()
+{
+	read "rawInput"
+	local input=$rawInput
+	echo "$input"
+} #end userInput
+##########################################################################
+
+##########################################################################
+#Function calls userInput function to get user input
+#Function decides which sub script to call and execute
+function choice ()
+{
+case $(userInput) in
+
+	1) information ;;
+	2) newGroup ;;
+	3) deleteGroup ;;
+	4) permissions ;;
+	*) $PRINTF 'Unknown Selection\n\n' ;;
+esac
+} #end choice
+##########################################################################
+
+##########################################################################
+#Displays current groups in /etc/group
+# Also shows the users that belong to the groups
+function information ()
+{
+	cat /etc/group | cut -d: -f1,4 | awk -F: '{printf "%-20s%-20s\n", $1, $2}' | less | sort
+
+	log "Print System existing groups" "$?"
+} #end information
+##########################################################################
+
+##########################################################################
+#Function to create new groups to the system
+#
+function newGroup ()
+{
+	$PRINTF 'Enter new Group Name: \n'
+	local groupName=$(userInput)
+	$GROUPADD "$groupName"
+	log "Create Group $groupName" "$?"
+} #end newGroup
+##########################################################################
+
+##########################################################################
+#
+# delete an exisiting group
+function deleteGroup ()
+{
+	$PRINTF 'Enter a Group Name to delete: \n'
+	local groupName=$(userInput)
+	$GROUPDEL "$groupName"
+	log "Delete Group $groupName" "$?"
+} #end deleteGroup
+##########################################################################
+
+##########################################################################
+#
+# edit group permissions
+function permissions ()
+{
+	$PRINTF 'Enter a new group to add permissions to user: \n'
+	local newGroup=$(userInput)
+
+	$PRINTF 'Enter a user name to edit permissions: \n'
+	local userName=$(userInput)
+
+	$PRINTF 'Copy user permissions to new group : \n'
+	$USERMOD -aG "$newGroup" "$userName"
+	log "Added Permissions of $newGroup for user $userName" "$?"
+} #end deleteGroup
+##########################################################################
+
+
+##########################################################################
+#Basically this kickstarts the script
+menu
+choice

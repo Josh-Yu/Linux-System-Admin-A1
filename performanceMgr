@@ -1,0 +1,156 @@
+#!/bin/bash
+
+#echo 'Inside Performance Management'
+#Name: Joshua Yu
+#Student Number: 323 5184
+#Last Modified: 1/08/2012
+
+
+PRINTF=/usr/bin/printf
+PS=/usr/bin/ps
+PKILL=/usr/bin/pkill
+KILL=/usr/bin/kill
+
+#set -x #trace
+set -u
+##########################################################################
+#Used to append logging operations to assistant.log
+#parameters passed in are: operation and Statuscode from operation.
+#currrent user and date are auto generated in the function, no passing req
+function log ()
+{
+	local currentUser=`/usr/ucb/whoami`
+	local operation=$1
+	local status=$2
+	local timeStamp=$(date +%F\|%T)
+	$PRINTF "$timeStamp | $currentUser | Status Code: $status | $operation| \n" >> assistant.log
+} #end log
+##########################################################################
+
+##########################################################################
+#function in charge of retriving user input
+#Function returns the output to wherever it is called
+function userInput ()
+{
+	read "rawInput"
+	local input=$rawInput
+	echo "$input"
+} #end userInput
+##########################################################################
+
+##########################################################################
+#
+#Displays menu
+function menu ()
+{
+	$PRINTF '1. List active processes by User \n'
+	$PRINTF '2. List active processes by Group \n'
+	$PRINTF '3. List active processes in total \n'
+	$PRINTF '================================= \n'
+	$PRINTF '4. Kill specific process \n'
+	$PRINTF '5. Kill processes belonging to user \n'
+	$PRINTF '6. Kill processes belonging to group \n'
+
+
+	$PRINTF 'Enter option: '
+} #end menu
+##########################################################################
+
+
+##########################################################################
+#Function calls userInput function to get user input
+#Function decides which sub script to call and execute
+function choice ()
+{
+	case $(userInput) in
+	1) userActive ;;
+	2) groupActive ;; 	
+	3) totalActive ;;
+	4) singleKill ;;
+	5) userKill ;;
+	6) groupKill ;;
+	*) $PRINTF 'Unknown Selection\n\n' ;;
+esac
+} #end choice
+##########################################################################
+
+
+##########################################################################
+#
+#show user current active processes
+function userActive ()
+{
+	$PRINTF 'Enter username to see the active processes: '
+	local currentUser=$(userInput)
+	$PS "-u $currentUser" | awk '{printf "%-8s%-10s%-20s\n", $1,$3,$4}'
+	log "Display $currentUser active processes " "$?"
+} #end userActive
+##########################################################################
+
+##########################################################################
+#
+#Show Active processes on a specific group
+function groupActive ()
+{
+	$PRINTF 'Enter group name to see the active processes under that group: '
+	local group=$(userInput)
+
+	$PS "-G $group" | sort
+	log "Display active processes under group $group" "$?"
+} #end groupActive
+##########################################################################
+
+
+##########################################################################
+#
+#Show total Active processes in the system
+function totalActive ()
+{
+	$PS -e | sort 
+
+	log "Display total active processes in the system " "$?"
+} #end totalActive
+
+##########################################################################
+#
+#Kill processes  on specific processID
+function singleKill ()
+{
+	$PRINTF 'Enter an process ID to kill that process: '
+	local processID=$(userInput)
+	$KILL -9 "$processID"
+	log "Kill specific process ID $processID " "$?"
+} #end userKill
+##########################################################################
+
+
+##########################################################################
+#
+#Kill processes belong to user
+function userKill ()
+{
+	$PRINTF 'Enter username to kill active processes under that user: '
+
+	local user=$(userInput)
+
+	$PKILL -u "$user"
+	log "Kill processes belonging to $user" "$?"
+} #end userKill
+##########################################################################
+
+##########################################################################
+#
+#Kill processes belonging to a group
+function groupKill ()
+{
+	$PRINTF 'Enter group name to kill active processes under that group: '
+	local group=$(userInput)
+
+	$PKILL -G "$group"
+	log "Kill processes belonging to group $group " "$?"
+} #end groupKill
+##########################################################################
+
+##########################################################################
+menu
+choice

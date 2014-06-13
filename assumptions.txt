@@ -1,0 +1,8 @@
+Assumptions:
+
+Users Management
+	Modify users permissions to me means the ability to specify a user and to change their primary group
+
+Group Management
+
+want to append user groups secondary groups

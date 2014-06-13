@@ -1,0 +1,139 @@
+#!/bin/bash
+
+#echo 'Inside User Management'
+
+#Name: Joshua Yu
+#Student Number: 323 5184
+#Yallara Login: s323 5184
+#
+#
+
+
+PRINTF=/usr/bin/printf
+USERMOD=/usr/sbin/usermod
+USERADD=/usr/sbin/useradd
+
+
+#set -x
+#set -u
+##########################################################################
+#Used to append logging operations to assistant.log
+#parameters passed in are: operation and Statuscode from operation.
+#currrent user and date are auto generated in the function, no passing req
+function log ()
+{
+	local currentUser=`/usr/ucb/whoami`
+	local operation=$1
+	local status=$2
+	local timeStamp=$(date +%F\|%T)
+	$PRINTF "$timeStamp | $currentUser | Status Code: $status | $operation| \n" >> assistant.log
+} #end log
+##########################################################################
+
+##########################################################################
+#Function in charge of retriving user input
+#Function returns the output to whereever is called
+function userInput ()
+{
+	read "rawInput"
+	local input=$rawInput
+	echo "$input"
+} #end userInput
+##########################################################################
+
+##########################################################################
+#
+#Displays menu
+function menu ()
+{
+	$PRINTF '1. Display current users\n'
+	$PRINTF '2. Add new user to system \n'
+	$PRINTF '3. Modify user permissions \n'
+	$PRINTF '4. Lock user \n'
+	$PRINTF 'Enter option: '
+} #end menu
+##########################################################################
+
+##########################################################################
+#Function calls userInput function to get user input
+#Function decides which sub script to call and execute
+function choice ()
+{
+	case $(userInput) in
+	1) list ;;
+	2) addUser ;; 	
+	3) permission ;;
+	4) lockUser;;
+	*) $PRINTF 'Unknown Selection\n\n' ;;
+esac
+} #end choice
+##########################################################################
+
+##########################################################################
+#list of exisiting users
+#
+function list ()
+{
+	cat /etc/passwd | cut -d: -f1
+	log "Listing of exisiting users" "$?"
+} #end list
+##########################################################################
+
+##########################################################################
+#Add a New User and Assign a Group in One Command
+# Create an new user and associate an exisiting primary group to them
+function addUser ()
+{
+#assume associate new user to an existing primary group
+#-G is secondary group
+#-g is primary 
+	$PRINTF 'Creating a new user to the system\n'
+	$PRINTF 'Enter a new username: '
+	local newName=$(userInput)
+
+	$PRINTF 'Enter a existing group to associate : '
+	local group=$(userInput)
+	$USERADD -g "$group" "$newName"
+
+	log "Create a new user $newName and associate to group $group" "$?"
+
+} #end addUser
+##########################################################################
+
+##########################################################################
+#
+# modify User permissions 
+#move an exisiting user to an exisiting primary group
+function permission ()
+{
+# -G, --groups GROUP1[,GROUP2,...[,GROUPN]]]
+
+
+	$PRINTF 'Modify User permissions \n'
+	$PRINTF 'Enter username: '
+	local userName=$(userInput)
+
+	$PRINTF 'Enter a existing group to move to : '
+	local group=$(userInput)
+	$USERMOD -g "$group" "$userName"
+
+	log "Modify permission of $userName to new group $group" "$?"
+} #end permission
+##########################################################################
+
+##########################################################################
+#
+# Function to lock an user in the system
+function lockUser ()
+{
+	$PRINTF 'Enter a new username to lock: '
+	local userName=$(userInput)
+
+	passwd -l "$userName"
+	log "Lock user $userName" "$?"
+} #end lockUser
+##########################################################################
+
+
+menu
+choice

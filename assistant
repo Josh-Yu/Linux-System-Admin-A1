@@ -1,0 +1,82 @@
+#!/bin/bash
+
+#Name: Joshua Yu
+#Student Number: 323 5184
+#Last Modified: 1/08/2012
+
+#This script is the controller that connects the other scripts together
+#centrally via menu
+
+#####################################################################
+
+
+#DEBUGGING
+set -u #Variable checks
+#set -x #Trace
+
+currentUser=`/usr/ucb/whoami`
+PRINTF=/usr/bin/printf
+
+
+##########################################################################
+#
+#Displays menu
+function menu ()
+{
+	$PRINTF '1. Groups Management \n'
+	$PRINTF '2. Users Management\n'
+	$PRINTF '3. File Management\n'
+	$PRINTF '4. Device and Disk Management\n'
+	$PRINTF '5. Performance Monitoring\n'
+	$PRINTF '6. Print log and exit\n'
+	$PRINTF 'Enter Option: '
+} #end menu
+##########################################################################
+
+##########################################################################
+#Function in charge of retriving user input
+#Function returns the output to wherever is called
+function userInput ()
+{
+	read "rawInput"
+	local input=$rawInput
+	echo "$input"
+} #end userInput
+##########################################################################
+
+##########################################################################
+#Function calls userInput function to get user input
+#Function decides which sub script to call and execute
+function choice ()
+{
+case $(userInput) in
+
+	1) ./groupMgr ;;
+	2) ./userMgr ;;
+	3) ./fileMgr ;;
+	4) ./deviceMgr ;;
+	5) ./performanceMgr ;;
+	6) print ;;
+	*) $PRINTF 'Unknown Selection\n\n' ;;
+
+esac
+} #end choice
+##########################################################################
+
+
+##########################################################################
+#
+# Prints the log into screen and exits script
+function print ()
+{
+	$PRINTF 'Printing Log\n'
+	sleep 2
+	cat assistant.log
+	exit 0
+} #end print
+##########################################################################
+
+
+##########################################################################
+menu
+choice

@@ -1,0 +1,107 @@
+#!/bin/bash
+
+#Author: Joshua Yu
+#student Number: 323 5184
+#Yallara username: s323 5184
+#Group Management 
+#
+#Last Modified: 06/08/2012
+
+
+PRINTF=/usr/bin/printf
+DF=/usr/bin/df
+
+##########################################################################
+#Used to append logging operations to assistant.log
+#parameters passed in are: operation and Statuscode from operation.
+#currrent user and date are auto generated in the function, no passing req
+function log ()
+{
+	local currentUser=`/usr/ucb/whoami`
+	local operation=$1
+	local status=$2
+	local timeStamp=$(date +%F\|%T)
+	$PRINTF "$timeStamp | $currentUser | Status Code: $status | $operation| \n" >> assistant.log
+} #end log
+##########################################################################
+
+##########################################################################
+#function in charge of retriving user input
+#Function returns the output to wherever it is called
+function userInput ()
+{
+	read "rawInput"
+	local input=$rawInput
+	echo "$input"
+} #end userInput
+##########################################################################
+
+##########################################################################
+#
+#Displays menu
+function menu ()
+{
+	$PRINTF "1. Information \n"
+	$PRINTF "2. Mount Device \n"
+	$PRINTF "3. Un-Mount Device \n"
+	$PRINTF 'Enter option: '
+} #end menu
+##########################################################################
+
+##########################################################################
+#Function calls userInput function to get user input
+#Function decides which sub script to call and execute
+function choice ()
+{
+	case $(userInput) in
+	1) information ;;
+	2) mountDevice ;; 	
+	3) unmountDevice ;;
+	*) $PRINTF 'Unknown Selection\n\n' ;;
+esac
+} #end choice
+##########################################################################
+
+##########################################################################
+#
+#
+function information ()
+{
+	$DF -h
+	log "Display information about devices and disks" "$?"
+} #end information
+##########################################################################
+
+##########################################################################
+#
+#
+function mountDevice ()
+{
+	$PRINTF 'Specify Device Location: '
+	local deviceLocation=$(userInput)
+
+	$PRINTF 'Specify Mount Point: '
+	local mountPoint=$(userInput)
+
+	mount "$deviceLocation" "$mountPoint"
+
+	log "Mounted $deviceLocation to mount point $mountPoint" "$?"
+} #end mountDevice
+##########################################################################
+
+##########################################################################
+#
+#
+function unmountDevice()
+{
+	$PRINTF 'Specify Device or mount point to un-mount: '
+	local unmountdevice=$(userInput)
+	umount "$unmountdevice"
+	log "Unmounted $unmountdevice" "$?"
+
+} #end unmountDevice
+##########################################################################
+
+##########################################################################
+menu
+choice
